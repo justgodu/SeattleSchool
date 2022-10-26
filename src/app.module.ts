@@ -45,7 +45,7 @@ const routes: any = [
 
     RouterModule.register(routes),
 
-    MongooseModule.forRoot('mongodb://localhost:27017/seattle-school'),
+
 
     ConfigModule.forRoot({
       envFilePath: [".env"],
@@ -54,11 +54,12 @@ const routes: any = [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
     }),
+
+    MongooseModule.forRoot(process.env.MONGO_URI),
     AuthModule,
     UserModule,
     SchoolModule,
     SchoolGoalModule,
-
   ],
   controllers: [AppController],
   providers: [AppService],
