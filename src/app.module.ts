@@ -64,4 +64,8 @@ const routes: any = [
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    console.log("TEEEEST: "+ process.env.MONGO_URI)
+  }
+}
