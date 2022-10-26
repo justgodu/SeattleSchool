@@ -1,0 +1,26 @@
+import {Body, Controller, Get, Post, Query, UseGuards} from '@nestjs/common';
+import {SchoolGoalService} from "./school-goal.service";
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
+import {RoleGuard} from "../role/role.guard";
+import {Roles} from "../role/decorator/role.decorator";
+import {query} from "express";
+
+@Controller('')
+export class SchoolGoalController {
+    constructor(private schoolGoalService: SchoolGoalService) {
+    }
+
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles('admin')
+    @Get()
+    async getSchoolGoals(@Query() query){
+        return this.schoolGoalService.getSchoolGoals(query)
+    }
+
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles('admin')
+    @Post()
+    async createSchoolGoal(@Body() body){
+        return this.schoolGoalService.createSchoolGoal(body)
+    }
+}
