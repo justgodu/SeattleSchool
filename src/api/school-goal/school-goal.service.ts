@@ -25,8 +25,13 @@ export class SchoolGoalService {
         }
     }
 
+    async getSchoolGoal(id){
+        return this.schoolGoalModel.findById(id);
+    }
+
     async createSchoolGoal(body){
         let newSchoolGoal = new this.schoolGoalModel(body);
         return newSchoolGoal.save();
     }
+
 }

@@ -4,6 +4,7 @@ import {User} from "../../model/user.schema";
 import {UserService} from "../user/user.service";
 import {AuthGuard} from "@nestjs/passport";
 import {SamlAuthGuard} from "./saml.guard";
+import {JwtAuthGuard} from "./jwt-auth.guard";
 const moment = require('moment');
 const pako = require('pako');
 const uuid = require('uuid');
@@ -32,6 +33,12 @@ export class AuthController {
     @Post('/login')
     async login(@Body() req) {
         return this.authService.login(req);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('validate')
+    async validate(){
+        return true;
     }
 
     @Get('google')

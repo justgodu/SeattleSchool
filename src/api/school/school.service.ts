@@ -25,6 +25,7 @@ export class SchoolService {
     }
 
     async createSchool(body){
+        console.log(body);
         const newSchool = new this.schoolModel(body);
         return newSchool.save();
     }
@@ -38,5 +39,30 @@ export class SchoolService {
         return this.schoolModel.deleteOne({_id: id});
     }
 
+    async getSchool(id) {
+        return this.schoolModel.findById(id);
+    }
 
+    async getSchoolWithGoals(id){
+        return this.schoolModel.findById(id).populate('parameters.goal_id');
+    }
+
+    async updateParameter(schoolId, goalIndex, parameterData){
+        let updateObject
+        if(goalIndex){
+            updateObject = {
+                "$set" :{}
+            }
+            updateObject["$set"][`parameters.${goalIndex}`] = parameterData;
+        }else{
+            updateObject = {
+                "$push" :{
+                    "parameters": parameterData
+                }
+            }
+        }
+
+        console.log(updateObject);
+        return this.schoolModel.updateOne({_id: schoolId}, updateObject)
+    }
 }

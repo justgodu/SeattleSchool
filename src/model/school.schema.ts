@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import {SchoolParameter} from "./school-parameters.schema";
 export type SchoolDocument = School & Document;
+
 @Schema({timestamps: true})
 export class School {
 
@@ -10,4 +11,5 @@ export class School {
     @Prop({required:true})
     parameters: SchoolParameter[]
 }
+
 export const SchoolSchema = SchemaFactory.createForClass(School)

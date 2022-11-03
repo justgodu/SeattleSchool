@@ -4,7 +4,10 @@ export type SchoolParameterDocument = SchoolParameter & Document;
 @Schema({timestamps: true})
 export class SchoolParameter {
     @Prop({required:true, ref: 'SchoolGoal', type: mongoose.Schema.Types.ObjectId})
-    goal_id: string;
+    column_id: string;
+
+    @Prop({ ref: 'SchoolGoal', type: mongoose.Schema.Types.ObjectId })
+    row_id: string;
 
     @Prop()
     priority: string;

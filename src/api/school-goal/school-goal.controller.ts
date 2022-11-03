@@ -1,4 +1,4 @@
-import {Body, Controller, Get, Post, Query, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Param, Post, Query, UseGuards} from '@nestjs/common';
 import {SchoolGoalService} from "./school-goal.service";
 import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 import {RoleGuard} from "../role/role.guard";
@@ -15,6 +15,13 @@ export class SchoolGoalController {
     @Get()
     async getSchoolGoals(@Query() query){
         return this.schoolGoalService.getSchoolGoals(query)
+    }
+
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles('admin')
+    @Get(":id")
+    async getSchoolGoal(@Param('id') goalId){
+        return this.schoolGoalService.getSchoolGoal(goalId)
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
