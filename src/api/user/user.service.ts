@@ -25,16 +25,35 @@ export class UserService {
             await newUser.save();
         }
 
-
-
-
-
         return user;
+    }
+    async getUsers(){
+        return this.userModel.find({}, {password: 0}).populate('school');
     }
 
 
+    async getById(id){
+        return this.userModel.findById(id, {password: 0});
+    }
     async getOne(username): Promise<User> {
         return this.userModel.findOne({ $or:[ { email: username },{ username: username } ] }).exec();
+    }
+
+    async updateUser(userId, userData){
+        if(!userData.school){
+            userData.school = null;
+        }
+        console.log(userData)
+        return this.userModel.updateOne({_id: userId}, userData);
+    }
+
+    async createUser(userData){
+        if(userData.password){
+            const salt = await bcrypt.genSalt();
+            const hash = await bcrypt.hash(userData.password, salt);
+            userData.password = hash;
+        }
+        return this.userModel.create(userData, userData);
     }
 
     /**

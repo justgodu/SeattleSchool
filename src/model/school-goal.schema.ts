@@ -5,8 +5,18 @@ export type SchoolGoalDocument = SchoolGoal & Document;
 export class SchoolGoal {
     @Prop({required:true})
     name: string;
-    @Prop({required: true})
-    parameter_count: number;
+
+    @Prop({ref: 'FormType', required: true})
+    form_type: string;
+
+    @Prop({
+        enum:[
+        "row",
+        "column"
+        ],
+        required: true
+    })
+    type: string;
 }
 
 export const SchoolGoalSchema = SchemaFactory.createForClass(SchoolGoal)

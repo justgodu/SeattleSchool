@@ -13,21 +13,32 @@ export class SchoolGoalController {
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles('admin')
     @Get()
-    async getSchoolGoals(@Query() query){
+    async getSchoolGoals(@Query() query) {
         return this.schoolGoalService.getSchoolGoals(query)
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles('admin')
     @Get(":id")
-    async getSchoolGoal(@Param('id') goalId){
+    async getSchoolGoal(@Param('id') goalId) {
         return this.schoolGoalService.getSchoolGoal(goalId)
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles('admin')
+    @Get("/items/:type/:formType/:schoolId?")
+    async getGoals(@Param('type') type,
+                   @Param('formType') formType,
+                   @Param('schoolId') schoolId,
+                   @Query() query) {
+
+        return this.schoolGoalService.getGoals(type, formType, query, schoolId)
+    }
+
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles('admin')
     @Post()
-    async createSchoolGoal(@Body() body){
+    async createSchoolGoal(@Body() body) {
         return this.schoolGoalService.createSchoolGoal(body)
     }
 }

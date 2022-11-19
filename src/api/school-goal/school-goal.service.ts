@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import {InjectModel} from "@nestjs/mongoose";
 import {SchoolGoal, SchoolGoalDocument} from "../../model/school-goal.schema";
-import {Model} from "mongoose";
+import mongoose, {Model} from "mongoose";
+import {School, SchoolDocument} from "../../model/school.schema";
 
 @Injectable()
 export class SchoolGoalService {
-    constructor(@InjectModel(SchoolGoal.name) private schoolGoalModel: Model<SchoolGoalDocument>) {
+    constructor(@InjectModel(SchoolGoal.name) private schoolGoalModel: Model<SchoolGoalDocument>,
+                @InjectModel(School.name) private schoolModel: Model<SchoolDocument>) {
     }
 
     async getSchoolGoals(params){
@@ -27,6 +29,60 @@ export class SchoolGoalService {
 
     async getSchoolGoal(id){
         return this.schoolGoalModel.findById(id);
+    }
+
+    async getGoals(type, formType, query, schoolId = null, ){
+
+        let schoolGoals:any[] = await this.schoolGoalModel.find({type: type, form_type: formType});
+
+
+        if(type === "row" && schoolId && query.status) {
+            const aggregateObject: any = [
+                {
+                    $match: {_id: new mongoose.Types.ObjectId(schoolId)}
+                },
+                {
+                    $project: {
+                        name: "$name",
+                        parameters: {
+                            $filter: {
+                                input: "$parameters",
+                                as: "param",
+                                cond: {$eq: ["$$param.form_type", formType]}
+
+                            }
+                        }
+                    }
+                }
+            ]
+
+            let school = (await this.schoolModel.aggregate(aggregateObject))[0];
+
+            for(const rowIndex in schoolGoals){
+                schoolGoals[rowIndex] = schoolGoals[rowIndex].toObject();
+                schoolGoals[rowIndex].sort = 0;
+                for(const param of school.parameters){
+                    if(param.row_id == schoolGoals[rowIndex]._id.toString() && param.data.status == query.status){
+                        schoolGoals[rowIndex].sort++;
+                    }
+                }
+
+            }
+
+            function compare( a, b ) {
+                if ( a.sort > b.sort ){
+                    return -1;
+                }
+                if ( a.sort < b.sort ){
+                    return 1;
+                }
+                return 0;
+            }
+            schoolGoals = schoolGoals.sort(compare);
+
+        }
+
+        return schoolGoals;
     }
 
     async createSchoolGoal(body){

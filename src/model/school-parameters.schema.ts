@@ -9,16 +9,10 @@ export class SchoolParameter {
     @Prop({ ref: 'SchoolGoal', type: mongoose.Schema.Types.ObjectId })
     row_id: string;
 
-    @Prop()
-    priority: string;
+    @Prop({ref: 'FormType', type: mongoose.Schema.Types.String})
+    form_type: string;
 
-    @Prop()
-    assessment_review: string;
-
-    @Prop()
-    assessment_values: string[];
-
-    @Prop({required:true, enum: SchoolGoalStatuses})
-    status: string
+    @Prop({type: mongoose.Schema.Types.Mixed})
+    data: any;
 }
 export const SchoolParameterSchema = SchemaFactory.createForClass(SchoolParameter)

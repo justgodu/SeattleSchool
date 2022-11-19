@@ -10,6 +10,8 @@ import { join } from 'path/posix';
 import {AuthModule} from "./api/auth/auth.module";
 import {SchoolModule} from "./api/school/school.module";
 import {SchoolGoalModule} from "./api/school-goal/school-goal.module";
+import {FormTypeModule} from "./api/form-type/form-type.module";
+
 const routes: any = [
   {
     path: "api",
@@ -32,6 +34,10 @@ const routes: any = [
           {
             path: "/school-goal",
             module: SchoolGoalModule
+          },
+          {
+            path: "/form-type",
+            module: FormTypeModule
           }
 
         ]
@@ -58,6 +64,7 @@ const routes: any = [
     UserModule,
     SchoolModule,
     SchoolGoalModule,
+    FormTypeModule
   ],
   controllers: [AppController],
   providers: [AppService],

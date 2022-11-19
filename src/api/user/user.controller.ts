@@ -1,6 +1,7 @@
 import {
+    Body,
     Controller,
-    Get,
+    Get, Param, Post, Put,
     UseGuards
 } from '@nestjs/common';
 import { UserService} from "./user.service";
@@ -12,11 +13,39 @@ import {Roles} from "../role/decorator/role.decorator";
 export class UserController {
     constructor(private readonly userService: UserService,
     ) { }
-
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles('admin')
     @Get()
-    getTest(){
-        return "WP"
+    async getUsers()
+    {
+        return this.userService.getUsers();
     }
+
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles('admin')
+    @Get(':userId')
+    async getUser(@Param('userId') userId)
+    {
+        return this.userService.getById(userId);
+    }
+
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles('admin')
+    @Put(':userId')
+    async updateUser(@Param('userId') userId, @Body() userData)
+    {
+        return this.userService.updateUser(userId, userData);
+    }
+
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles('admin')
+    @Post('')
+    async createUser(@Body() userData)
+    {
+        return this.userService.createUser(userData);
+    }
+
+
+
+
 }

@@ -5,16 +5,32 @@ import {RoleGuard} from "../role/role.guard";
 import {Roles} from "../role/decorator/role.decorator";
 import {InjectModel} from "@nestjs/mongoose";
 import {SchoolGoal, SchoolGoalDocument} from "../../model/school-goal.schema";
-import {Model} from "mongoose";
+import mongoose, {Model, Schema} from "mongoose";
 import {User, UserDocument} from "../../model/user.schema";
 import {UserService} from "../user/user.service";
+import {FormType, FormTypeDocument} from "../../model/form-type.schema";
+
 
 @Controller('')
 export class SchoolController {
     constructor(
         private schoolService: SchoolService,
         @InjectModel(SchoolGoal.name) private schoolGoalModel: Model<SchoolGoalDocument>,
+        @InjectModel(FormType.name) private formTypeModel: Model<FormTypeDocument>,
         private userService: UserService) {
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('with-columns/:formType/:schoolId?')
+    async getSchoolsWithColumns(@Param('formType') formType, @Param('schoolId') schoolId, @Query() query){
+
+        let filter = {};
+
+        if(schoolId){
+            filter['_id'] = new mongoose.Types.ObjectId(schoolId)
+        }
+
+        return this.schoolService.getSchoolsWithColumns(filter, formType, query)
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
@@ -54,118 +70,117 @@ export class SchoolController {
 
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles('admin')
-    @Get('csip-edit/:schoolId/:goalId')
-    async getCSIPEdit(@Req() req, @Param('schoolId') schoolId, @Param('goalId') goalId){
+    @Get('edit/:schoolId/:formType/:columnId/:rowId?')
+    async getSchoolParam(@Req() req,
+                      @Param('schoolId') schoolId,
+                      @Param('formType') formType,
+                      @Param('columnId') columnId,
+                      @Param('rowId') rowId
+    ){
 
         let current_user = await this.userService.getOne(req.user.username);
         let userRole = current_user.role;
-        let school = await this.schoolService.getSchoolWithGoals(schoolId);
-        let existingGoal;
-        for(const param of school.parameters){
-            if(param.goal_id == goalId){
-                existingGoal = param;
-                break;
-            }
+        let cell = await this.schoolService.getSchoolCell(schoolId, formType, columnId, rowId);
+
+        if(cell){
+            return cell;
         }
-
-        let schoolGoal = await this.schoolGoalModel.findById(goalId);
-
-        let formObject = [
-            {
-                "key": "action",
-                "label": "Action",
-                "type": "textarea",
-                "readonly": userRole !== 'admin',
-                "value": existingGoal?.action || ''
-            },
-            {
-                "key": "assessment_review",
-                "label": "Assessment Review",
-                "type": "textarea",
-                "filled_with": "assessment_values",
-                "readonly": userRole !== 'admin',
-                "value": existingGoal?.assessment_review || ''
-            },
-            {
-                "key": "assessment_values",
-                "label": "Assessment Values",
-                "type": "array",
-                "array_type": "text",
-                "array_length": schoolGoal.parameter_count || 0,
-                "readonly": userRole !== 'admin',
-                "value": existingGoal?.assessment_values || []
-            },
-            {
-                "key": "status",
-                "buttons": [
-                    {
-                        "title": "Exceed",
-                        "bgcolor": "#00B0F0",
-                        "txtcolor": "#000000",
-                        "key": "exceed"
-                    },
-                    {
-                        "title": "Meet",
-                        "bgcolor": "#00B050",
-                        "txtcolor": "#000000",
-                        "key": "meet"
-                    },
-                    {
-                        "title": "Partially Meet",
-                        "bgcolor": "#FFFF00",
-                        "txtcolor": "#44546A",
-                        "key": "partially_meet"
-                    },
-                    {
-                        "title": "Underperform",
-                        "bgcolor": "#FF0000",
-                        "txtcolor": "#ffffff",
-                        "key": "underperform"
-                    }
-                ],
-                "type": "radio_buttons",
-                "readonly": userRole !== 'admin',
-                "value": existingGoal?.status || ''
-            }
-        ];
-
-        return formObject;
+        return {};
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles('admin')
-    @Post('csip-edit/:schoolId/:goalId')
-    async updateCSIPEdit(@Req() req,@Body() formData, @Param('schoolId') schoolId, @Param('goalId') goalId){
+    @Post('edit/:schoolId/:formTypeId/:columnId/:rowId?')
+    async updateSchoolParam(@Req() req,
+                         @Body() formData,
+                         @Param('schoolId') schoolId,
+                         @Param('formTypeId') formTypeId,
+                         @Param('columnId') columnId,
+                         @Param('rowId') rowId
+    ){
         let current_user = await this.userService.getOne(req.user.username);
         let userRole = current_user.role;
         let school = await this.schoolService.getSchool(schoolId);
+        let formType = await this.formTypeModel.findById(formTypeId);
 
-        let fields = {
-            action: 'admin',
-            assessment_review:'admin',
-            assessment_values:'admin',
-            status:'admin'
+        if(!formType){
+            return false;
         }
-        let goalIndex;
-        for(const index in school.parameters){
-            console.log(goalId, school.parameters[index])
-            if(school.parameters[index].goal_id == goalId){
 
-                goalIndex = index;
-                break;
+        let column = await this.schoolGoalModel.findOne({_id: columnId, type: "column", form_type: formType});
+        if(!column){
+            return false;
+        }
+
+        if(rowId){
+            let row = await this.schoolGoalModel.findOne({_id: rowId, type: "row", form_type: formType});
+            if(!row){
+                return false;
             }
         }
 
-        for(const key of Object.keys(formData)){
-            if(fields[key] !== userRole){
-                delete formData[key];
+        let schoolHasCell = await this.schoolService.schoolHasCell(schoolId, formTypeId, columnId, rowId)
+
+        if(schoolHasCell){
+            for(const index in school.parameters){
+                if(rowId){
+                    if(
+                        school.parameters[index].row_id === rowId
+                        && school.parameters[index].column_id === columnId
+                    ){
+                        for(const [fieldKey,field] of Object.entries<any>(formType.data)){
+
+                            if(formData[fieldKey] && field.role === userRole){
+                                school.parameters[index].data[fieldKey] = formData[fieldKey];
+                            }
+
+                        }
+                    }
+                }else{
+                    if(
+                        school.parameters[index].column_id === columnId
+                    ){
+                        for(const [fieldKey,field] of Object.entries<any>(formType.data)){
+
+                            if(formData[fieldKey] && field.role === userRole){
+                                school.parameters[index].data[fieldKey] = formData[fieldKey];
+                            }
+
+                        }
+                    }
+                }
             }
+
+
+        }else{
+            for(const [fieldKey,field] of Object.entries(formData)){
+
+                if(!formType.data[fieldKey] || formType.data[fieldKey].role !== userRole){
+                    delete formData[fieldKey];
+                }
+
+            }
+
+
+            school.parameters.push(
+                {
+                    column_id: columnId,
+                    row_id: rowId,
+                    form_type: formType._id,
+                    data: formData
+
+                }
+            )
+
         }
-        formData["goal_id"] = goalId;
-        return this.schoolService.updateParameter(schoolId, goalIndex, formData);
+
+        school.markModified('parameters')
 
 
+        return school.save();
 
 
     }
+
+
 }

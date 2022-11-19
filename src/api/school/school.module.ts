@@ -7,6 +7,8 @@ import {SchoolGoal, SchoolGoalSchema} from "../../model/school-goal.schema";
 import {User, UserSchema} from "../../model/user.schema";
 import {UserModule} from "../user/user.module";
 import {FormType, FormTypeSchema} from "../../model/form-type.schema";
+import {SchoolGoalService} from "../school-goal/school-goal.service";
+import {SchoolGoalModule} from "../school-goal/school-goal.module";
 
 @Module({
   controllers: [SchoolController],
@@ -17,7 +19,8 @@ import {FormType, FormTypeSchema} from "../../model/form-type.schema";
       { name: SchoolGoal.name, schema: SchoolGoalSchema },
       { name: FormType.name, schema: FormTypeSchema },
     ]),
-      UserModule
+      UserModule,
+      SchoolGoalModule
   ]
 })
 export class SchoolModule {}
