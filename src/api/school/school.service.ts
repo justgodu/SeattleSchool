@@ -10,8 +10,8 @@ export class SchoolService {
                 private schoolGoalService: SchoolGoalService) {
     }
 
-    async getSchools(body){
-        let filter = {}
+    async getSchools(body, filter = {}){
+        console.log(filter)
         let per_page = body.per_page ? body.per_page : 10;
         let page = body.page ? body.page : 0;
         let selectObject = {};

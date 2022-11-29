@@ -22,7 +22,14 @@ export class SchoolController {
 
     @UseGuards(JwtAuthGuard)
     @Get('with-columns/:formType/:schoolId?')
-    async getSchoolsWithColumns(@Param('formType') formType, @Param('schoolId') schoolId, @Query() query){
+    async getSchoolsWithColumns(@Req() req, @Param('formType') formType, @Param('schoolId') schoolId, @Query() query){
+
+        let currentUser = await this.userService.getOne(req.user.username);
+        if(currentUser.role === "principal"){
+            if(schoolId !== currentUser.school.toString()){
+                return;
+            }
+        }
 
         let filter = {};
 
@@ -34,17 +41,26 @@ export class SchoolController {
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles('admin')
+    @Roles('admin', 'principal')
     @Get(':id')
     async getSchool(@Param('id') schoolId) {
         return this.schoolService.getSchool(schoolId);
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles('admin')
+    @Roles('admin', 'principal')
     @Get()
-    async getSchools(@Query() query) {
-        return this.schoolService.getSchools(query);
+    async getSchools(
+        @Req() req,
+        @Query() query
+    ) {
+        let currentUser = await this.userService.getOne(req.user.username);
+        // console.log( req.user.username)
+        let filter = {}
+        if(currentUser.role === "principal"){
+            filter["_id"] = currentUser.school.toString();
+        }
+        return this.schoolService.getSchools(query, filter);
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
@@ -69,7 +85,7 @@ export class SchoolController {
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles('admin')
+    @Roles('admin', 'principal')
     @Get('edit/:schoolId/:formType/:columnId/:rowId?')
     async getSchoolParam(@Req() req,
                       @Param('schoolId') schoolId,
@@ -78,8 +94,13 @@ export class SchoolController {
                       @Param('rowId') rowId
     ){
 
-        let current_user = await this.userService.getOne(req.user.username);
-        let userRole = current_user.role;
+
+        let currentUser = await this.userService.getOne(req.user.username);
+        if(currentUser.role === "principal"){
+            if(schoolId !== currentUser.school.toString()){
+                return;
+            }
+        }
         let cell = await this.schoolService.getSchoolCell(schoolId, formType, columnId, rowId);
 
         if(cell){
@@ -89,7 +110,7 @@ export class SchoolController {
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
-    @Roles('admin')
+    @Roles('admin', 'principal')
     @Post('edit/:schoolId/:formTypeId/:columnId/:rowId?')
     async updateSchoolParam(@Req() req,
                          @Body() formData,
@@ -98,8 +119,13 @@ export class SchoolController {
                          @Param('columnId') columnId,
                          @Param('rowId') rowId
     ){
-        let current_user = await this.userService.getOne(req.user.username);
-        let userRole = current_user.role;
+        let currentUser = await this.userService.getOne(req.user.username);
+        let userRole = currentUser.role;
+        if(currentUser.role === "principal"){
+            if(schoolId !== currentUser.school.toString()){
+                return;
+            }
+        }
         let school = await this.schoolService.getSchool(schoolId);
         let formType = await this.formTypeModel.findById(formTypeId);
 

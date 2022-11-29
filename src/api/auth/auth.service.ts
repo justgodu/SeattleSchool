@@ -26,6 +26,7 @@ export class AuthService {
 
             const { password, google_token } = foundUser;
 
+            console.log([password, user.password])
             if( password && user.password ){
 
                 if (bcrypt.compare(user.password, password)) {
@@ -33,6 +34,7 @@ export class AuthService {
 
                     return {
                         access_token: this.jwtService.sign(payload),
+                        role: foundUser.role
                     };
                 }
             }else if( google_token && user.google_token && user.google_token == google_token ){
@@ -41,6 +43,7 @@ export class AuthService {
 
                 return {
                     access_token: this.jwtService.sign(payload),
+                    role: foundUser.role
                 };
             }
 
