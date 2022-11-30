@@ -13,12 +13,21 @@ import {Roles} from "../role/decorator/role.decorator";
 export class UserController {
     constructor(private readonly userService: UserService,
     ) { }
+
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles('admin')
     @Get()
     async getUsers()
     {
         return this.userService.getUsers();
+    }
+
+    @UseGuards(JwtAuthGuard, RoleGuard)
+    @Roles('admin')
+    @Post('/delete')
+    async deleteUser(@Body() userData)
+    {
+        return await this.userService.deleteUser(userData);
     }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
@@ -44,8 +53,5 @@ export class UserController {
     {
         return this.userService.createUser(userData);
     }
-
-
-
 
 }

@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import { Injectable, HttpException, HttpStatus, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import {Model} from "mongoose";
 import { User, UserDocument } from "../../model/user.schema";
@@ -9,6 +9,8 @@ export class UserService {
     constructor(@InjectModel(User.name) private userModel: Model<UserDocument>,
                 private jwtService: JwtService
     ) { }
+
+    private readonly logger = new Logger(UserService.name);
 
     async signup(user: User): Promise<User> {
         if(user.password){
@@ -64,6 +66,20 @@ export class UserService {
      */
     async updateGoogleToken(username, googleToken): Promise<any> {
         return this.userModel.updateOne({ $or:[ { email: username },{ username: username } ] }, {google_token: googleToken, is_google_user: true})
+    }
+
+    async deleteUser(userData) {
+
+        let userId = userData['_id'];
+
+        try {
+            let deleteOperationResult = await this.userModel.findByIdAndDelete(userId);
+        } catch (err) {
+            this.logger.log(`Problem deleting user with id: ${userId} _ ${err}`);
+            return false;
+        }
+
+        return true;
     }
 
 }
