@@ -55,7 +55,6 @@ export class SchoolController {
         @Query() query
     ) {
         let currentUser = await this.userService.getOne(req.user.username);
-        // console.log( req.user.username)
         let filter = {}
         if(currentUser.role === "principal"){
             filter["_id"] = currentUser.school.toString();

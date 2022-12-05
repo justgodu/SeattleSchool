@@ -11,7 +11,6 @@ export class SchoolService {
     }
 
     async getSchools(body, filter = {}){
-        console.log(filter)
         let per_page = body.per_page ? body.per_page : 10;
         let page = body.page ? body.page : 0;
         let selectObject = {};
@@ -37,7 +36,7 @@ export class SchoolService {
     }
 
     async createSchool(body){
-        console.log(body);
+
         const newSchool = new this.schoolModel(body);
         return newSchool.save();
     }
@@ -93,7 +92,7 @@ export class SchoolService {
         //     }
         // }
 
-        console.log(updateObject);
+
         return this.schoolModel.updateOne({_id: schoolId}, updateObject)
     }
 
@@ -171,7 +170,7 @@ export class SchoolService {
         let schools;
 
 
-        console.log(filter);
+
 
         const aggregateObject:any = [
             {
@@ -206,7 +205,6 @@ export class SchoolService {
         // }
         schools = await this.schoolModel.aggregate(aggregateObject);
 
-        console.log(schools)
         return schools;
     }
 }

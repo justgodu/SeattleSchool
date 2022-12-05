@@ -1,7 +1,7 @@
 import {
     Body,
     Controller,
-    Get, Param, Post, Put,
+    Get, Param, Post, Put, Req,
     UseGuards
 } from '@nestjs/common';
 import { UserService} from "./user.service";
@@ -13,6 +13,17 @@ import {Roles} from "../role/decorator/role.decorator";
 export class UserController {
     constructor(private readonly userService: UserService,
     ) { }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('getUsername')
+    getUsername(@Req() req)
+    {
+
+        return {
+            username: req.user.username
+        }
+
+    }
 
     @UseGuards(JwtAuthGuard, RoleGuard)
     @Roles('admin')
@@ -53,5 +64,7 @@ export class UserController {
     {
         return this.userService.createUser(userData);
     }
+
+
 
 }

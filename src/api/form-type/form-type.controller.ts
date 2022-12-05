@@ -22,10 +22,14 @@ export class FormTypeController {
         }else{
             return false;
         }
+        let fieldIndexes = 0;
+        console.log(formType.data)
         for(const key of Object.keys(formType.data)){
             if(formType.data[key].role && formType.data[key].role !== userRole){
                 delete formType.data[key].role;
                 formType.data[key].readonly = true;
+            }else{
+                formType.data[key].fieldIndex = ++fieldIndexes + '.';
             }
         }
         return formType
