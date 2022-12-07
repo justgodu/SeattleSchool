@@ -9,7 +9,10 @@ export class School {
     name: string;
 
     @Prop({required:true})
-    parameters: SchoolParameter[]
+    parameters: SchoolParameter[];
+
+    @Prop({required: true})
+    school_type: string;
 }
 
-export const SchoolSchema = SchemaFactory.createForClass(School)
+export const SchoolSchema = SchemaFactory.createForClass(School);
