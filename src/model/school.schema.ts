@@ -11,7 +11,7 @@ export class School {
     @Prop({required:true})
     parameters: SchoolParameter[];
 
-    @Prop({required: true})
+    @Prop({})
     school_type: string;
 }
 
